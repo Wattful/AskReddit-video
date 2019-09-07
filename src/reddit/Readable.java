@@ -1,5 +1,3 @@
-package reddit;
-
 import javax.sound.sampled.*;
 import io.humble.video.*;
 import java.awt.image.BufferedImage;
@@ -131,10 +129,11 @@ public abstract class Readable{
 		Process recording = Runtime.getRuntime().exec("aws polly synthesize-speech --sample-rate 16000 --output-format pcm --text \"" + s.replace("\"", "") + "\" --voice-id " + voice + " audio/temp/temp" + testAudio + ".pcm");
 		BufferedReader i = new BufferedReader(new InputStreamReader(recording.getInputStream()));
 		String t;
+		//System.out.println("bruh");
 		while ((t = i.readLine()) != null) {
 			//System.out.println(t);
 		}
-		Process converting = Runtime.getRuntime().exec("C:\\Libraries\\ffmpeg\\ffmpeg-20190718-9869e21-win64-static\\bin\\ffmpeg -f s16le -ar 16000 -ac 1 -i audio/temp/temp" + testAudio + ".pcm -y audio/temp/temp" + testAudio + ".wav");
+		Process converting = Runtime.getRuntime().exec("C:\\Libraries\\ffmpeg\\ffmpeg-20190718-9869e21-win64-static\\bin\\ffmpeg -f s16le -ar 16000 -ac 1 -i audio/temp/temp" + testAudio + ".pcm -y -ar 48000 audio/temp/temp" + testAudio + ".wav");
 		BufferedReader j = new BufferedReader(new InputStreamReader(converting.getErrorStream()));
 		while ((t = j.readLine()) != null) {
 			//System.out.println(t);

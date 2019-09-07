@@ -1,5 +1,3 @@
-package reddit;
-
 import io.humble.video.*;
 import java.util.*;
 import java.io.IOException;
@@ -9,26 +7,23 @@ import org.jsoup.nodes.*;
 import org.jsoup.Jsoup;
 
 /*
-Before launching youtube:
-2. Save thumbnail - RIGHT ALIGN
-*/
-
-/*
 Future features:
 1. Include awards
 2. Autoscaling
 */
 
-public class Post extends LinkedList<Readable> {
-	public static final int FRAMERATE = 50;
+public class Post extends ArrayList<Readable> {
+	public static final int FRAMERATE = 25;
 
 	private String song;
 	private String transition;
+	private String outro;
 
-	public Post(org.jsoup.nodes.Document doc, int maxComments, String t, String s){
+	public Post(org.jsoup.nodes.Document doc, int maxComments, String t, String s, String o){
 		super(getPost(doc, maxComments));
 		song = s;
 		transition = t;
+		outro = o;
 	}
 
 	private static List<Readable> getPost(org.jsoup.nodes.Document doc, int maxComments){
@@ -53,7 +48,7 @@ public class Post extends LinkedList<Readable> {
 		}
 		Collections.shuffle(answer);
 		Element q = doc.body().getElementById("siteTable");
-		answer.add(0, new Question(q.getElementsByClass("title").get(0).text(), q.getElementsByClass("tagline").get(0).text(), q.getElementsByClass("score unvoted").get(0).text(), q.getElementsByClass("comments").get(0).text()));
+		answer.add(0, new Question(q.getElementsByClass("title").get(0).text().replaceAll("\\(self.AskReddit\\)", "").replaceAll("Serious Replies Only", ""), q.getElementsByClass("tagline").get(0).text(), q.getElementsByClass("score unvoted").get(0).text(), q.getElementsByClass("comments").get(0).text()));
 		return answer;
 	}
 
@@ -70,7 +65,8 @@ public class Post extends LinkedList<Readable> {
 		System.out.println(" Done");
 
 		int total = 0;
-		for(Readable r : this){
+		for(int i = 0; i < this.size(); i++){
+			Readable r = this.get(i);
 			System.out.println("============================================");
 			System.out.println("Readable " + total);
 			try{
@@ -79,8 +75,13 @@ public class Post extends LinkedList<Readable> {
 			} catch(RuntimeException e){
 				e.printStackTrace();
 				total--;
+			} catch(OutOfMemoryError e){
+				total++;
+				System.out.println("Ran out of memory.");
+				break;
 			}
 			total++;
+			this.set(i, null);
 		}
 
 		System.out.print("Merging");
@@ -127,12 +128,14 @@ public class Post extends LinkedList<Readable> {
 		//s.append("file 'merged/r0.mp4'\n");
 		//s.append("file '" + transition + "'\n");
 		s.append("file 'merged/almostdone.mp4\n");
+		//s.append("file '" + transition + "'\n");
+		s.append("file '" + outro + "'\n");
 
 		BufferedWriter w = new BufferedWriter(new FileWriter("./list.txt"));
     	w.write(s.toString());
     	w.close();
 
-	    System.out.print("Adding question");
+	    System.out.print("Adding outro");
 	    Process concatAgain = Runtime.getRuntime().exec("C:\\Libraries\\ffmpeg\\ffmpeg-20190718-9869e21-win64-static\\bin\\ffmpeg -y -f concat -i list.txt -c copy " + path);
     	stdInput = new BufferedReader(new InputStreamReader(concatAgain.getErrorStream()));
 		while ((t = stdInput.readLine()) != null) {
@@ -151,8 +154,11 @@ public class Post extends LinkedList<Readable> {
 		if(!(new File(args[4])).exists()){
 			throw new FileNotFoundException(args[4] + " does not exist.");
 		}
+		if(!(new File(args[5])).exists()){
+			throw new FileNotFoundException(args[5] + " does not exist.");
+		}
 		Document doc = Jsoup.parse(new File(args[0]), "UTF-8");
-		Post p = new Post(doc, Integer.parseInt(args[2]), args[3], args[4]);
+		Post p = new Post(doc, Integer.parseInt(args[2]), args[3], args[4], args[5]);
 		p.saveVideo(args[1]);
 
 		/*File file = new File(args[0]);

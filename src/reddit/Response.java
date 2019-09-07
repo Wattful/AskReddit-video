@@ -56,7 +56,7 @@ public class Response extends Readable{
 			@Override
 			protected BufferedImage createBufferedImage(final int width, final int height) {
     			final BufferedImage image = org.xhtmlrenderer.util.ImageUtil.createCompatibleBufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-    			org.xhtmlrenderer.util.ImageUtil.clearImage(image, new Color(8, 27, 51));
+    			org.xhtmlrenderer.util.ImageUtil.clearImage(image, new Color(18, 18, 18));
     			return image;
 			}
 		};
