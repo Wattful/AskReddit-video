@@ -1,3 +1,5 @@
+package reddit;
+
 import io.humble.video.*;
 import java.util.*;
 import java.io.IOException;
@@ -5,6 +7,7 @@ import javax.sound.sampled.*;
 import java.io.*;
 import org.jsoup.nodes.*;
 import org.jsoup.Jsoup;
+import org.apache.commons.cli.*;
 
 /*
 Future features:
@@ -15,15 +18,8 @@ Future features:
 public class Post extends ArrayList<Readable> {
 	public static final int FRAMERATE = 25;
 
-	private String song;
-	private String transition;
-	private String outro;
-
-	public Post(org.jsoup.nodes.Document doc, int maxComments, String t, String s, String o){
+	public Post(org.jsoup.nodes.Document doc, int maxComments){
 		super(getPost(doc, maxComments));
-		song = s;
-		transition = t;
-		outro = o;
 	}
 
 	private static List<Readable> getPost(org.jsoup.nodes.Document doc, int maxComments){
@@ -52,9 +48,9 @@ public class Post extends ArrayList<Readable> {
 		return answer;
 	}
 
-	public void saveVideo(String path) throws IOException, InterruptedException {
+	public void saveVideo(Map<String, String> options) throws IOException, InterruptedException {
 		System.out.print("Clearing file system");
-		File[] foldersToClear = {new File("./merged"), new File("./audio"), new File("./audio/temp"), new File("./video")};
+		File[] foldersToClear = {new File("../debug/merged"), new File("../debug/audio"), new File("../debug/audio/temp"), new File("../debug/video")};
 		for(File f : foldersToClear){
 			for(File g : f.listFiles()){
 				if(!g.isDirectory()){
@@ -64,21 +60,31 @@ public class Post extends ArrayList<Readable> {
 		}
 		System.out.println(" Done");
 
+		System.out.print("Loading response template");
+		Response.setTemplate(options.get("response-template"));
+		System.out.println(" Done");
+
+		System.out.print("Loading question template");
+		Question.setTemplate(options.get("question-template"));
+		System.out.println(" Done");
+
 		int total = 0;
 		for(int i = 0; i < this.size(); i++){
 			Readable r = this.get(i);
 			System.out.println("============================================");
-			System.out.println("Readable " + total);
+			String type;
+			if(i == 0){
+				type = "Question";
+			} else {
+				type = "Response";
+			}
+			System.out.println(type + " " + total);
 			try{
-				r.saveVideo("./video/r" + total + ".mp4");
-				r.saveAudio("./audio/r" + total + ".wav");
+				r.saveVideo("../debug/video/r" + total + ".mp4", options.get(type.toLowerCase() + "-template"));
+				r.saveAudio("../debug/audio/r" + total + ".wav");
 			} catch(RuntimeException e){
 				e.printStackTrace();
 				total--;
-			} catch(OutOfMemoryError e){
-				total++;
-				System.out.println("Ran out of memory.");
-				break;
 			}
 			total++;
 			this.set(i, null);
@@ -86,7 +92,7 @@ public class Post extends ArrayList<Readable> {
 
 		System.out.print("Merging");
 		for(int i = 0; i < total; i++){
-			Process merging = Runtime.getRuntime().exec("C:\\Libraries\\ffmpeg\\ffmpeg-20190718-9869e21-win64-static\\bin\\ffmpeg -y -i ./video/r" + i + ".mp4 -i ./audio/r" + i + ".wav -acodec aac -vcodec h264 ./merged/r" + i + ".mp4");
+			Process merging = Runtime.getRuntime().exec("ffmpeg -y -i ../debug/video/r" + i + ".mp4 -i ../debug/audio/r" + i + ".wav -acodec aac -vcodec h264 ../debug/merged/r" + i + ".mp4");
 			BufferedReader stdInput = new BufferedReader(new InputStreamReader(merging.getErrorStream()));
 			String s;
 			while ((s = stdInput.readLine()) != null) {
@@ -96,11 +102,15 @@ public class Post extends ArrayList<Readable> {
 		}
 		System.out.println("Done");
 
+		boolean questionMusic = Boolean.parseBoolean(options.get("question-music"));
+		String transition = options.get("transition");
 		StringBuilder s = new StringBuilder("");
 		//Change i to 1 and uncomment two lines below to have question without music.
-		for(int i = 0; i < total; i++){
-			s.append("file 'merged/r" + i + ".mp4'\n");
-			s.append("file '" + transition + "'\n");
+		for(int i = 0 + (questionMusic ? 0 : 1); i < total; i++){
+			s.append("file '../debug/merged/r" + i + ".mp4'\n");
+			if(transition != null){
+				s.append("file '" + transition + "'\n");
+			}
 		}
 
 		BufferedWriter writer = new BufferedWriter(new FileWriter("./list.txt"));
@@ -108,7 +118,7 @@ public class Post extends ArrayList<Readable> {
     	writer.close();
 
     	System.out.print("Combining reponses");
-    	Process concat = Runtime.getRuntime().exec("C:\\Libraries\\ffmpeg\\ffmpeg-20190718-9869e21-win64-static\\bin\\ffmpeg -y -f concat -i list.txt -c copy merged/noq.mp4");
+    	Process concat = Runtime.getRuntime().exec("ffmpeg -y -f concat -safe 0 -i list.txt -c copy ../debug/merged/noq.mp4");
     	BufferedReader stdInput = new BufferedReader(new InputStreamReader(concat.getErrorStream()));
 		String t;
 		while ((t = stdInput.readLine()) != null) {
@@ -116,27 +126,45 @@ public class Post extends ArrayList<Readable> {
 		}
 		System.out.println(" Done");
 
-		System.out.print("Overlaying music");
-		Process music = Runtime.getRuntime().exec("C:\\Libraries\\ffmpeg\\ffmpeg-20190718-9869e21-win64-static\\bin\\ffmpeg -y -i merged/noq.mp4 -i " + song + " -filter_complex \"[0:a][1:a]amerge=inputs=2[a]\" -map 0:v -map \"[a]\" -c:v copy -c:a aac -ac 1 -shortest merged/almostdone.mp4");
-    	stdInput = new BufferedReader(new InputStreamReader(music.getErrorStream()));
-		while ((t = stdInput.readLine()) != null) {
-			//System.out.println(t);
+		String music = options.get("music");
+		if(music != null){
+			System.out.print("Overlaying music");
+			Process overlaying = Runtime.getRuntime().exec("ffmpeg -y -i ../debug/merged/noq.mp4 -i " + music + " -filter_complex \"[0:a][1:a]amerge=inputs=2[a]\" -map 0:v -map \"[a]\" -c:v copy -c:a aac -ac 1 -shortest ../debug/merged/almostdone.mp4");
+	    	stdInput = new BufferedReader(new InputStreamReader(overlaying.getErrorStream()));
+			while ((t = stdInput.readLine()) != null) {
+				//System.out.println(t);
+			}
+			System.out.println(" Done");
 		}
-		System.out.println(" Done");
 
 		s = new StringBuilder("");
-		//s.append("file 'merged/r0.mp4'\n");
+		String intro = options.get("intro");
+		String outro = options.get("outro");
+		if(intro != null){
+			s.append("file '" + intro + "'\n");
+		}
+		if(!questionMusic){
+			s.append("file '../debug/merged/r0.mp4'\n");
+			if(transition != null){
+				s.append("file '" + transition + "'\n");
+			}
+		}
+		if(music == null){
+			s.append("file '../debug/merged/noq.mp4\n");
+		} else {
+			s.append("file '../debug/merged/almostdone.mp4\n");
+		}
 		//s.append("file '" + transition + "'\n");
-		s.append("file 'merged/almostdone.mp4\n");
-		//s.append("file '" + transition + "'\n");
-		s.append("file '" + outro + "'\n");
+		if(outro != null){
+			s.append("file '" + outro + "'\n");
+		}
 
 		BufferedWriter w = new BufferedWriter(new FileWriter("./list.txt"));
     	w.write(s.toString());
     	w.close();
 
-	    System.out.print("Adding outro");
-	    Process concatAgain = Runtime.getRuntime().exec("C:\\Libraries\\ffmpeg\\ffmpeg-20190718-9869e21-win64-static\\bin\\ffmpeg -y -f concat -i list.txt -c copy " + path);
+	    System.out.print("Finishing");
+	    Process concatAgain = Runtime.getRuntime().exec("ffmpeg -y -f concat -safe 0 -i list.txt -c copy " + options.get("output"));
     	stdInput = new BufferedReader(new InputStreamReader(concatAgain.getErrorStream()));
 		while ((t = stdInput.readLine()) != null) {
 			//System.out.println(t);
@@ -144,34 +172,54 @@ public class Post extends ArrayList<Readable> {
 		System.out.println(" Done");
 	}
 
-	public static void main(String[] args) throws IOException, InterruptedException, UnsupportedAudioFileException {
-		if(!(new File(args[0])).exists()){
-			throw new FileNotFoundException(args[0] + " does not exist.");
-		}
-		if(!(new File(args[3])).exists()){
-			throw new FileNotFoundException(args[3] + " does not exist.");
-		}
-		if(!(new File(args[4])).exists()){
-			throw new FileNotFoundException(args[4] + " does not exist.");
-		}
-		if(!(new File(args[5])).exists()){
-			throw new FileNotFoundException(args[5] + " does not exist.");
-		}
-		Document doc = Jsoup.parse(new File(args[0]), "UTF-8");
-		Post p = new Post(doc, Integer.parseInt(args[2]), args[3], args[4], args[5]);
-		p.saveVideo(args[1]);
+	public static void main(String[] args) throws IOException, InterruptedException, UnsupportedAudioFileException, ParseException {
+		Options options = new Options();
+		options.addOption(Option.builder("p").longOpt("page").numberOfArgs(1).required().build());
+		options.addOption(Option.builder("o").longOpt("output").numberOfArgs(1).required().build());
+		options.addOption(Option.builder("m").longOpt("music").numberOfArgs(1).build());
+		options.addOption(Option.builder("r").longOpt("resopnses").numberOfArgs(1).build());
+		options.addOption(Option.builder("qm").longOpt("question-music").numberOfArgs(1).build());
+		options.addOption(Option.builder("rt").longOpt("response-template").numberOfArgs(1).build());
+		options.addOption(Option.builder("qt").longOpt("question-template").numberOfArgs(1).build());
+		options.addOption(Option.builder("t").longOpt("transition").numberOfArgs(1).build());
+		options.addOption(Option.builder("ot").longOpt("outro").numberOfArgs(1).build());
+		options.addOption(Option.builder("it").longOpt("intro").numberOfArgs(1).build());
+		CommandLineParser parser = new DefaultParser();
+		CommandLine input = parser.parse(options, args);
 
-		/*File file = new File(args[0]);
-        FileOutputStream fos = null;
-        InputStream is = null;
-        fos = new FileOutputStream("templates/templatesource.xhtml");
-        is = new FileInputStream(file);
-        Tidy tidy = new Tidy(); 
-        tidy.setInputEncoding("UTF-8");
-    	tidy.setOutputEncoding("UTF-8");
-        tidy.setXHTML(true); 
-        tidy.setForceOutput(true);
-        tidy.parse(is, fos);*/
-        //AudioSystem.getAudioInputStream(new File("audio/awstest.wav"));
+		String responseTemplate = input.getOptionValue("rt", "../premade/templates/responsetemplate.xhtml");
+		String questionTemplate = input.getOptionValue("qt", "../premade/templates/questiontemplate.xhtml");
+		String music = input.getOptionValue("m");
+		String transition = input.getOptionValue("t");
+		String intro = input.getOptionValue("it");
+		String outro = input.getOptionValue("ot");
+		String page = input.getOptionValue("p");
+
+		String[] testExists = {responseTemplate, questionTemplate, music, transition, intro, outro, page};
+		for(String s : testExists){
+			if(s != null && !(new File(s).exists())){
+				throw new FileNotFoundException(s + " does not exist.");
+			}
+		}
+
+		int responses;
+		try{
+			responses = Integer.parseInt(input.getOptionValue("r", "100000"));
+		} catch(NumberFormatException e){
+			throw new IllegalArgumentException("Responses was not a valid number.", e);
+		}
+
+		Document doc = Jsoup.parse(new File(page), "UTF-8");
+		Post p = new Post(doc, responses);
+		Map<String, String> passingOptions = new TreeMap<String, String>();
+		passingOptions.put("output", input.getOptionValue("o"));
+		passingOptions.put("response-template", responseTemplate);
+		passingOptions.put("question-template", questionTemplate);
+		passingOptions.put("question-music", input.getOptionValue("qm", "true"));
+		passingOptions.put("music", music);
+		passingOptions.put("transition", transition);
+		passingOptions.put("outro", outro);
+		passingOptions.put("intro", intro);
+		p.saveVideo(passingOptions);
 	}
 }

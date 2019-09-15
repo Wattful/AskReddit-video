@@ -1,3 +1,5 @@
+package reddit;
+
 import javax.sound.sampled.*;
 import io.humble.video.*;
 import java.awt.image.BufferedImage;
@@ -43,13 +45,13 @@ public abstract class Readable{
 		comments = c;
 	}
 
-	protected abstract org.w3c.dom.Document getTemplate();
+	abstract org.w3c.dom.Document getTemplate();
 
-	protected abstract int heightOfBoxWithoutText();
+	abstract int heightOfBoxWithoutText();
 
-	protected abstract Java2DRenderer getRenderer();
+	abstract Java2DRenderer getRenderer(String path);
 
-	protected abstract int screenHeight();
+	abstract int screenHeight();
 
 	private double calculateMargin(){
 		int approxCharsPerLine = 125;
@@ -126,37 +128,37 @@ public abstract class Readable{
 
 	private AudioInputStream record(String s) throws IOException {
 		//System.out.println("\"" + s + "\"");
-		Process recording = Runtime.getRuntime().exec("aws polly synthesize-speech --sample-rate 16000 --output-format pcm --text \"" + s.replace("\"", "") + "\" --voice-id " + voice + " audio/temp/temp" + testAudio + ".pcm");
+		Process recording = Runtime.getRuntime().exec("aws polly synthesize-speech --sample-rate 16000 --output-format pcm --text \"" + s.replace("\"", "") + "\" --voice-id " + voice + " ../debug/audio/temp/temp" + testAudio + ".pcm");
 		BufferedReader i = new BufferedReader(new InputStreamReader(recording.getInputStream()));
 		String t;
 		//System.out.println("bruh");
 		while ((t = i.readLine()) != null) {
 			//System.out.println(t);
 		}
-		Process converting = Runtime.getRuntime().exec("C:\\Libraries\\ffmpeg\\ffmpeg-20190718-9869e21-win64-static\\bin\\ffmpeg -f s16le -ar 16000 -ac 1 -i audio/temp/temp" + testAudio + ".pcm -y -ar 48000 audio/temp/temp" + testAudio + ".wav");
+		Process converting = Runtime.getRuntime().exec("ffmpeg -f s16le -ar 16000 -ac 1 -i ../debug/audio/temp/temp" + testAudio + ".pcm -y -ar 48000 ../debug/audio/temp/temp" + testAudio + ".wav");
 		BufferedReader j = new BufferedReader(new InputStreamReader(converting.getErrorStream()));
 		while ((t = j.readLine()) != null) {
 			//System.out.println(t);
 		}
 		StringBuilder str = new StringBuilder("");
-		str.append("file 'audio/temp/temp" + testAudio + ".wav'\n");
-		str.append("file 'premade/pad350.wav'\n");
+		str.append("file '../debug/audio/temp/temp" + testAudio + ".wav'\n");
+		str.append("file '../premade/padding/pad350.wav'\n");
 		BufferedWriter w = new BufferedWriter(new FileWriter("./list.txt"));
     	w.write(str.toString());
     	w.close();
-		Process padding = Runtime.getRuntime().exec("C:\\Libraries\\ffmpeg\\ffmpeg-20190718-9869e21-win64-static\\bin\\ffmpeg -f concat -i list.txt -codec copy -y audio/temp/temp" + testAudio + "padded.wav");
+		Process padding = Runtime.getRuntime().exec("ffmpeg -f concat -safe 0 -i list.txt -codec copy -y ../debug/audio/temp/temp" + testAudio + "padded.wav");
 		BufferedReader k = new BufferedReader(new InputStreamReader(padding.getErrorStream()));
 		while ((t = k.readLine()) != null) {
 			//System.out.println(t);
 		}
 		try{
-			AudioInputStream ais = AudioSystem.getAudioInputStream(new File("audio/temp/temp" + testAudio + "padded.wav"));
+			AudioInputStream ais = AudioSystem.getAudioInputStream(new File("../debug/audio/temp/temp" + testAudio + "padded.wav"));
 			testAudio++;
 			return ais;
 		} catch(FileNotFoundException e){
 			try{
 				testAudio++;
-				return AudioSystem.getAudioInputStream(new File("premade/pad1000.wav"));
+				return AudioSystem.getAudioInputStream(new File("../premade/padding/pad1000.wav"));
 			} catch(UnsupportedAudioFileException f){
 				throw new AssertionError(f);
 			}
@@ -175,7 +177,7 @@ public abstract class Readable{
 		return answer;
 	}
 
-	private List<BufferedImage> recordFrames(){
+	private List<BufferedImage> recordFrames(String templatePath){
 		assert sentenceDurations != null : "SentenceDurations was not initialized.";
 		System.out.print("Rendering " + sentences.size() + " pictures");
 		List<BufferedImage> answer = new LinkedList<BufferedImage>();
@@ -185,7 +187,7 @@ public abstract class Readable{
 			currentMessage += s;
 			int repeat = message.length() - currentMessage.length();
 			editTemplate(currentMessage, user, score, comments, repeat > 0 ? repeat : 0);
-			Java2DRenderer renderer = getRenderer();
+			Java2DRenderer renderer = getRenderer(templatePath);
     		ScalingOptions so = new ScalingOptions(1920, 1080, BufferedImage.TYPE_INT_ARGB, DownscaleQuality.HIGH_QUALITY, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 			//renderer.setBufferedImageType(5);
 			BufferedImage image = ImageUtil.getScaledInstance(so, renderer.getImage());
@@ -219,13 +221,13 @@ public abstract class Readable{
 		return new SequenceInputStream(Collections.enumeration(str));
 	}
 
-	public void saveVideo(String path) throws InterruptedException, IOException {
+	public void saveVideo(String path, String templatePath) throws InterruptedException, IOException {
 		voice = Voice.randomVoice();
 		sentences = splitSentences();
 		numSentences = sentences.size();
 		sentenceAudio = recordAudio();
 		sentenceDurations = calculateDuration();
-		frames = recordFrames();
+		frames = recordFrames(templatePath);
 
 		System.out.print("Preparing muxer");
 		final Muxer muxer = Muxer.make(path, null, "mp4");
