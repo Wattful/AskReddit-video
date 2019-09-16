@@ -3,6 +3,14 @@ Tool that creates text to speech videos reading AskReddit threads.
 This tool uses AWS polly and the AWS Command Line Interface for text to speech. To use it, you must have an AWS account.
 
 # Features
+* Creates an MP4 video using a reddit webpage as input
+	* Intended for use with r/AskReddit threads, but can work with pages from any subreddit
+* Video contains AWS text-to-speech voices
+	* Voice reads question and each response
+	* Alternates between several AWS voices
+* Can include user-made intros, outros, music, and transitions
+	* Must meet requirements listed under "Premade Audio and Video Files" below
+* Includes default
 
 # Command Line arguments
 ```
@@ -17,12 +25,17 @@ argument                    description
 --transition, -t            A video file to play between each response. Must meet video requirements listed below.
 --outro, -ot                A video file to play after all the responses have finished. Must meet video requirements listed below.
 --intro, -it                A video file to play before the question. Must meet video requirements listed below.
---framerate, -f             Video framrate. Defaults to 25. Values that evenly divide 1000 are recommended.
 
 ```
 
 # Dependencies
 
-# Premade Music, Transitions, and Outros
+# Premade Audio and Video Files
+
+# Custom Templates
+
+# Build and Run
+
+# Filesystem
 
 # Known issues
