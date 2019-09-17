@@ -48,7 +48,6 @@ public class Question extends Readable{
 	}
 
 	Java2DRenderer getRenderer(String path){
-		System.out.println("file:///" + System.getProperty("user.dir").replace("\\", "/") + "/" + path.substring(0, path.lastIndexOf("/") + 1));
 		return new Java2DRenderer(getTemplate(), "file:///" + System.getProperty("user.dir").replace("\\", "/") + "/" + path.substring(0, path.lastIndexOf("/") + 1), 768, 432){
 			@Override
 			protected BufferedImage createBufferedImage(final int width, final int height) {
