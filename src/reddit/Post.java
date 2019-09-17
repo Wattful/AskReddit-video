@@ -187,8 +187,8 @@ public class Post extends ArrayList<Readable> {
 		CommandLineParser parser = new DefaultParser();
 		CommandLine input = parser.parse(options, args);
 
-		String responseTemplate = input.getOptionValue("rt", "../premade/templates/responsetemplate.xhtml");
-		String questionTemplate = input.getOptionValue("qt", "../premade/templates/questiontemplate.xhtml");
+		String responseTemplate = input.getOptionValue("rt", "../essential/templates/responsetemplate.xhtml");
+		String questionTemplate = input.getOptionValue("qt", "../essential/templates/questiontemplate.xhtml");
 		String music = input.getOptionValue("m");
 		String transition = input.getOptionValue("t");
 		String intro = input.getOptionValue("it");
