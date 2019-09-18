@@ -1,5 +1,6 @@
 # AskReddit-video
-Tool that creates text to speech videos reading AskReddit threads.  
+Tool that creates text to speech videos reading AskReddit threads.
+[Here](https://youtu.be/SPimTa8fwl4) is an example of a video created using this program.
 
 # Features
 * Creates an MP4 video using a reddit webpage as input
