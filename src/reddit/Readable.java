@@ -65,7 +65,9 @@ public abstract class Readable{
 		template.getElementById("userreplace").setTextContent(user);
 		template.getElementById("responsereplace").setTextContent(m);
 		template.getElementById("scorereplace").setTextContent(score);
-		template.getElementById("padreplace").setTextContent(message.substring(message.length() - padding));
+		if(template.getElementById("padreplace") != null){
+			template.getElementById("padreplace").setTextContent(message.substring(message.length() - padding));
+		}
 		if(template.getElementById("marginreplace") != null){
 			template.getElementById("marginreplace").setAttribute("style", "margin-top:" + calculateMargin() + "px;");
 		}
