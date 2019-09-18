@@ -1,5 +1,5 @@
 # AskReddit-video
-Tool that creates text to speech videos reading AskReddit threads.
+Tool that creates text to speech videos reading AskReddit threads.  
 [Here](https://youtu.be/SPimTa8fwl4) is an example of a video created using this program.
 
 # Features
@@ -10,7 +10,7 @@ Tool that creates text to speech videos reading AskReddit threads.
 	* Alternates between several AWS voices.
 * Can include user-made intros, outros, music, and transitions.
 	* Must meet requirements listed under "Premade Audio and Video Files" below.
-* Response and question data is "plugged into" xhtml templates before being rendered.
+* Response and question data is "plugged into" XHTML templates before being rendered.
 	* Default templates for both questions and responses are included.
 	* User can edit default templates or create custom templates.
 	* User created templates must meet requirements listed in "Custom Templates".
@@ -82,7 +82,7 @@ This program renders video using XHTML templates.
 These templates contain HTML id tags which tell the program where to place relevant data.  
 For example, the element with id "userreplace" is where the poster's reddit username goes. All text in that element will be replace with the reddit username.  
 If the user wishes to edit the default templates, they can make changes as long as the id tags are not changed. Backing up the original templates is recommended.  
-The templates must be in XHTML. If one wishes to *rougly* convert HTML to XHTML, [JTidy](http://jtidy.sourceforge.net/) is useful.  
+The templates must be in XHTML. If one wishes to *roughly* convert HTML to XHTML, [JTidy](http://jtidy.sourceforge.net/) is useful.  
 If the user wishes to make a custom template, they must place the id tags where the relevant information should be put.  
 The id tags are as follows. All are required for both question and response templates unless otherwise noted.  
 ```
