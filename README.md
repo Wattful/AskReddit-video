@@ -44,7 +44,7 @@ The following are dependencies of this program:
 * [Apache Commons CLI](https://commons.apache.org/proper/commons-cli/)
 * [Jsoup](https://jsoup.org/)
 * [Flying Saucer](https://github.com/flyingsaucerproject/flyingsaucer)
-* [Humble-Video](https://github.com/artclarke/humble-video)
+* [Humble-Video](https://github.com/artclarke/humble-video)  
 All required JAR files are included in the lib/ directory. No additional assembly is required.
 
 ### FFmpeg
