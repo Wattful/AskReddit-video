@@ -18,7 +18,7 @@ Tool that creates text to speech videos reading AskReddit threads.
 # Build and Run
 To build and run, first navigate to the src directory.  
 Build:  
-`javac -cp ../lib/*;. reddit/*.java` 
+`javac -cp ../lib/*;. reddit/*.java`  
 Run:  
 `java -cp ../lib/*;. reddit/Post [options]` 
 
