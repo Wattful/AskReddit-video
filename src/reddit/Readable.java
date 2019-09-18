@@ -144,7 +144,7 @@ public abstract class Readable{
 		}
 		StringBuilder str = new StringBuilder("");
 		str.append("file '../debug/audio/temp/temp" + testAudio + ".wav'\n");
-		str.append("file '../premade/padding/pad350.wav'\n");
+		str.append("file '../essential/padding/pad350.wav'\n");
 		BufferedWriter w = new BufferedWriter(new FileWriter("./list.txt"));
     	w.write(str.toString());
     	w.close();
@@ -160,7 +160,7 @@ public abstract class Readable{
 		} catch(FileNotFoundException e){
 			try{
 				testAudio++;
-				return AudioSystem.getAudioInputStream(new File("../premade/padding/pad1000.wav"));
+				return AudioSystem.getAudioInputStream(new File("../essential/padding/pad1000.wav"));
 			} catch(UnsupportedAudioFileException f){
 				throw new AssertionError(f);
 			}
