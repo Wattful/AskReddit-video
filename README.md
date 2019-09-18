@@ -102,6 +102,12 @@ If one scrolls to the bottom of Readable.java, an enum called "Voice" is declare
 The values of this enum are the names of the AWS voices the program will use.  
 Simply edit the values to customize which voices read the text. Make sure to build again after changing anything.  
 
+# Troubleshooting
+`Clearing file systemException in thread "main" java.lang.NullPointerException`  
+This happens if you have deleted or altered the structure of the debug folder. Revert it to how it is in on GitHub.  
+`Exception in thread "main" java.io.FileNotFoundException: ../essential/templates/questiontemplate.xhtml does not exist`  
+This happens if you have deleted or altered the structure of the essential or essential/templates folder. Revert it to how it is in on GitHub.
+
 # Known issues
-It is not recommended to alter the structure of the filesystem. Doing so, especially to the debug and essential folders, may cause unexpected problems.  
+It is not recommended to alter the structure of the filesystem. Doing so, especially to the debug and essential folders, may cause unexpected problems (see troubleshooting section above).  
 This program is untested on Mac OS and Linux.
