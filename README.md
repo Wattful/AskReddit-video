@@ -15,6 +15,13 @@ Tool that creates text to speech videos reading AskReddit threads.
 	* User can edit default templates or create custom templates.
 	* User created templates must meet requirements listed in "Custom Templates".
 
+# Build and Run
+To build and run, first navigate to the src directory.
+Build:
+`javac -cp ../lib/*;. reddit/*.java`
+Run:
+`java -cp ../lib/*;. reddit/Post [options]`
+
 # Command Line arguments
 ```
 argument                    description
@@ -87,13 +94,6 @@ padreplace           Optional tag. "Pads" the question or comment with invisible
 commentreplace       Required for question templates only. The number of comments on the post.
 marginreplace        Optional tag. Where to shift the page to vertically center it. Not recommended for custom templates.
 ```
-
-# Build and Run
-To build and run, first navigate to the src directory.
-Build:
-`javac -cp ../lib/*;. reddit/*.java`
-Run:
-`java -cp ../lib/*;. reddit/Post [options]`
 
 # AWS Voices
 From the command line, there is currently no way to customize which AWS voices read the text.
